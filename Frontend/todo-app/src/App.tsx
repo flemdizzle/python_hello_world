@@ -18,7 +18,7 @@ const App: React.FC = () => {
       text: newTodo,
       completed: false,
     };
-    setTodos([...todos, todo]);
+    setTodos([...todos, todo]); 
     setNewTodo('');
   };
 
