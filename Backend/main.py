@@ -1,9 +1,10 @@
+import logging
 from typing import List, Annotated
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-
+from fastapi.middleware.cors import CORSMiddleware
 from connect_db import Base, engine, get_db
 
 class TodoCreate(BaseModel):
@@ -25,6 +26,25 @@ class Todo(Base):
     complete = Column(Boolean, index=True)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend URL, e.g. ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+logging.basicConfig(level=logging.INFO)
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    body = await request.body()  # Ensure body can be read
+    logging.info(f"Request: {request.method} {request.url} {body}")
+    response = await call_next(request)
+    logging.info(f"Response status: {response.status_code}")
+    return response
+
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)

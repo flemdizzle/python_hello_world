@@ -14,12 +14,27 @@ const App: React.FC = () => {
   const addTodo = () => {
     if (newTodo.trim() === '') return;
     const todo: Todo = {
-      id: Date.now(),
+      id: Date.now(), // Temporary ID, replace with backend-generated ID
       text: newTodo,
       completed: false,
     };
-    setTodos([...todos, todo]); 
-    setNewTodo('');
+    fetch('http://localhost:8000/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(todo),
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to add todo');
+        return response.json();
+      })
+      .then(data => {
+        setTodos([...todos, data]);
+        setNewTodo('');
+      })
+      .catch(error => {
+        console.error(error);
+        // Optionally show error to user
+      });
   };
 
   const toggleTodo = (id: number) => {
